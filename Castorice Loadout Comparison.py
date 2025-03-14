@@ -1,4 +1,5 @@
 import itertools
+from tqdm import tqdm
 
 # 3.2v3
 
@@ -168,7 +169,7 @@ available_castorice_lc = ['Make Farewells More Beautiful', 'Sweat Now, Cry Less'
 # newbud_regen = sum(castorice.skill_hp_consume * member.max_hp for member in team) 
 
 team_combinations = list(itertools.combinations(available_char, 2))
-print(f'team combinations : {team_combinations}')
+
 eidolon_levels = list(range(max_eidolon + 1))
 
 lightcones = available_lc
@@ -176,30 +177,33 @@ superimpose_levels = list(range(max_superimpose + 1))
 
 all_possible_teams = []
 
-for team in team_combinations:
-    for eidolons in itertools.product(eidolon_levels, repeat=2):  # Eidolon levels for both characters
-        for lightcone_choices in itertools.product(lightcones, repeat=2):  # Lightcones for both characters
-            for superimposes in itertools.product(superimpose_levels, repeat=2):  # Superimpose levels for both characters
-                for eidolon in range(max_castorice_eidolon+1):
-                    for cas_lc in available_castorice_lc:
-                        for cas_si in range(1, max_castorice_superimpose+1):
-                            castorice_lc = get_lightcone(cas_lc, cas_si, 2)
-                            castorice = Castorice(0, 70, 200, castorice_lc)
-                            characters = []
-                            for i in range(2):
-                                lc_name = lightcone_choices[i]
-                                superimpose = superimposes[i]
+total_combinations = len(team_combinations) * len(list(itertools.product(eidolon_levels, repeat=2))) * len(list(itertools.product(lightcones, repeat=2))) * len(list(itertools.product(superimpose_levels, repeat=2))) * (max_castorice_eidolon+1) * len(available_castorice_lc) * max_castorice_superimpose
 
-                                if superimpose == 0:
-                                    lightcone = get_lightcone("Memories of the past", 5, 0)
-                                else:
-                                    lightcone = get_lightcone(lc_name, superimpose, stack=3)
+print(f'team combinations : {team_combinations}')
+with tqdm(total_combinations, desc="Processing", total=total_combinations, unit="Combinations") as pbar:
+    for team in team_combinations:
+        for eidolons in itertools.product(eidolon_levels, repeat=2):  # Eidolon levels for both characters
+            for lightcone_choices in itertools.product(lightcones, repeat=2):  # Lightcones for both characters
+                for superimposes in itertools.product(superimpose_levels, repeat=2):  # Superimpose levels for both characters
+                    for eidolon in range(max_castorice_eidolon+1):
+                        for cas_lc in available_castorice_lc:
+                            for cas_si in range(1, max_castorice_superimpose+1):
+                                castorice_lc = get_lightcone(cas_lc, cas_si, 2)
+                                castorice = Castorice(0, 70, 200, castorice_lc)
+                                characters = []
+                                for i in range(2):
+                                    lc_name = lightcone_choices[i]
+                                    superimpose = superimposes[i]
 
-                                character = get_character(team[i], eidolons[i], lightcone)
-                                characters.append(character)
+                                    if superimpose == 0:
+                                        lightcone = get_lightcone("Memories of the past", 5, 0)
+                                    else:
+                                        lightcone = get_lightcone(lc_name, superimpose, stack=3)
 
-                            # Append the full team (Castorice + 2 other characters)
-                            all_possible_teams.append((castorice, characters[0], characters[1]))
+                                    character = get_character(team[i], eidolons[i], lightcone)
+                                    characters.append(character)
 
+                                all_possible_teams.append((castorice, characters[0], characters[1]))
+                                pbar.update(1)
 # Print out the total number of combinations
 print(f"Total simulation compositions: {len(all_possible_teams)}")
