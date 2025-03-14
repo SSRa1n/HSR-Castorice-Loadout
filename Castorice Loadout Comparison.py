@@ -180,7 +180,7 @@ all_possible_teams = []
 total_combinations = len(team_combinations) * len(list(itertools.product(eidolon_levels, repeat=2))) * len(list(itertools.product(lightcones, repeat=2))) * len(list(itertools.product(superimpose_levels, repeat=2))) * (max_castorice_eidolon+1) * len(available_castorice_lc) * max_castorice_superimpose
 
 print(f'team combinations : {team_combinations}')
-with tqdm(total_combinations, desc="Processing", total=total_combinations, unit="Combinations") as pbar:
+with tqdm(total_combinations, desc="Processing", total=total_combinations, unit="Combinations", ncols=100) as pbar:
     for team in team_combinations:
         for eidolons in itertools.product(eidolon_levels, repeat=2):  # Eidolon levels for both characters
             for lightcone_choices in itertools.product(lightcones, repeat=2):  # Lightcones for both characters
@@ -204,6 +204,7 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                     characters.append(character)
 
                                 all_possible_teams.append((castorice, characters[0], characters[1]))
+                                
                                 pbar.update(1)
 # Print out the total number of combinations
 print(f"Total simulation compositions: {len(all_possible_teams)}")
