@@ -9,9 +9,9 @@ character_hp_substat = 0.432
 character_cdmg = 2.00 # 200% CDMG for crit 
 
 max_castorice_eidolon = 6
-max_castorice_superimpose = 5
+max_castorice_superimpose = 1
 max_eidolon = 6
-max_superimpose = 5
+max_superimpose = 1
 
 class Castorice:
     def __init__(self, eidolon, cr, cd, lightcone):
