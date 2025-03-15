@@ -7,7 +7,9 @@ character_level = 80
 enemy_level = 90
 
 character_hp_substat = 0.432
-character_cdmg = 2.00 # 200% CDMG for crit 
+character_cdmg = 2.00 # 200% CDMG for crit support
+healer_max_hp = 5000 # Max HP for Healer
+
 
 max_castorice_eidolon = 6
 max_castorice_superimpose = 1
@@ -17,6 +19,7 @@ max_superimpose = 1
 class Castorice:
     def __init__(self, eidolon, cr, cd, lightcone):
         self.eidolon = eidolon
+        self.lightcone = lightcone
         self.base_spd = 95
         self.dragon_max_hp = 36000
         self.dragon_base_spd = 165
@@ -42,6 +45,7 @@ class Castorice:
 class Character:
     def __init__(self, name, basehp, buffcr, buffcd, tdmg, truedmg, respen, defignore, defreduct, vulne, bonusturn):
         self.name = name
+        self.eidolon = None
         self.base_hp = basehp
         self.max_hp = basehp
         self.buff_critrate = buffcr
@@ -98,6 +102,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         defignore = (0.2 if eidolon >= 1 else 0) + lightcone.buff_defignore
         character = Character(name, basehp,lightcone.buff_critrate,lightcone.buff_critdmg,tdmg,lightcone.buff_truedmg,respen,defignore,lightcone.debuff_defreduct,lightcone.debuff_vulnerability,lightcone.bonusturn)
         character.max_hp = character.base_hp * (1 + character_hp_substat)
+        character.eidolon = eidolon
         character.lightcone = lightcone
     elif name == 'Sparkle':
         basehp = 1397 + lightcone.user_base_hp
@@ -107,6 +112,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         defignore = ((0.08 if eidolon >= 2 else 0) * 3) + lightcone.buff_defignore
         character = Character(name, basehp, lightcone.buff_critrate, buffcdmg, tdmg, lightcone.buff_truedmg, lightcone.buff_respen, defignore, lightcone.debuff_defreduct, lightcone.debuff_vulnerability, 2 + lightcone.bonusturn)
         character.max_hp = character.base_hp * (1 + character_hp_substat)
+        character.eidolon = eidolon
         character.lightcone = lightcone
     elif name == 'Robin':
         basehp = 1281 + lightcone.user_base_hp
@@ -114,6 +120,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         tdmg = (0.55 if eidolon >= 2 else 0.5) + lightcone.buff_tdmg
         respen = (0.24 if eidolon >= 1 else 0) + lightcone.buff_respen
         character = Character(name, basehp, lightcone.buff_critrate, buffcdmg, tdmg, lightcone.buff_tdmg, respen, lightcone.buff_defignore, lightcone.debuff_defreduct, lightcone.debuff_vulnerability, 1)
+        character.eidolon = eidolon
         character.lightcone = lightcone
         # No HP substat as robin prioritizes ATK
     elif name == 'Sunday':
@@ -125,6 +132,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         defignore = (0.4 if eidolon >= 1 else 0) + lightcone.buff_defignore
         character = Character(name, basehp, buffcr, buffcdmg, tdmg, lightcone.buff_truedmg, lightcone.buff_respen, defignore, lightcone.debuff_defreduct, lightcone.debuff_vulnerability, 2 + lightcone.bonusturn)
         character.max_hp = character.base_hp * (1 + character_hp_substat)
+        character.eidolon = eidolon
         character.lightcone = lightcone
     elif name == 'Tribbie':
         basehp = 1048 + lightcone.user_base_hp
@@ -134,6 +142,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         truedmg = 0.24 + lightcone.buff_truedmg
         character = Character(name, basehp, lightcone.buff_critrate, lightcone.buff_critdmg, lightcone.buff_tdmg, truedmg, respen, defignore, lightcone.debuff_defreduct, vuln, lightcone.bonusturn)
         # Trace's HP bonus will be added later as it calculates teammates' HP
+        character.eidolon = eidolon
         character.lightcone = lightcone
     elif name == 'RMC':
         lightcone = Lightcone(5,0,0,0,0.16*3,0,0,0,0,0,0,1058,0,0) # Memory's Curtain Never Falls
@@ -143,6 +152,7 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         truedmg = 0.3 + lightcone.buff_truedmg
         character = Character(name, basehp, buffcr, buffcd, 0, truedmg, 0, 0, 0, 0, 1)
         character.max_hp = character.base_hp * (1 + character_hp_substat)
+        character.eidolon = eidolon
         character.lightcone = lightcone
     elif name == 'Pela':
         lightcone = Lightcone('Resolution Shines As Pearls of Sweat',5,0,0,0,0,0,0,0,0.16,0,0,953,0)
@@ -150,13 +160,11 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         defreduct = 0.42 + lightcone.debuff_defreduct
         character = Character(name, basehp, 0, 0, 0, 0, 0, 0, defreduct, 0, 0)
         character.max_hp = character.base_hp * (1 + character_hp_substat)
+        character.eidolon = eidolon
         character.lightcone = lightcone
     return character
 
 # enemy_def_multiply = (character_level + 20) / (((enemy_level + 20) * (1 - total_def_reduction - total_def_ignore)) + character_level + 20)
-
-# TODO: Check Sunday E6 excess CR buff
-# TODO: Check Tribbie HP trace
 
 available_char = ['Ruan Mei', 'Sparkle', 'Robin', 'Sunday', 'Tribbie', 'RMC', 'Pela']
 available_lc = ['Dance Dance Dance', 'Planetary Rendezvous', 'Past Self in Mirror', 'Earthly Escapade', 
@@ -191,6 +199,11 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                 castorice_lc = get_lightcone(cas_lc, cas_si, 2)
                                 castorice = Castorice(0, 70, 200, castorice_lc)
                                 characters = []
+
+                                has_sunday = False
+                                has_tribbie = False
+                                tribbie_index = 0
+
                                 for i in range(2):
                                     lc_name = lightcone_choices[i]
                                     superimpose = superimposes[i]
@@ -203,8 +216,37 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                     character = get_character(team[i], eidolons[i], lightcone)
                                     characters.append(character)
 
-                                all_possible_teams.append((castorice, characters[0], characters[1]))
+                                    if character.name == 'Sunday':
+                                        has_sunday = True
+                                    elif character.name == 'Tribbie':
+                                        has_tribbie = True
+                                        tribbie_index = i
+
+                                # Sunday E6 excess CR buff
+                                if has_sunday:
+                                    if castorice.crit_rate > 1:
+                                        castorice.crit_dmg += castorice.crit_rate - 1
+                                        
+                                # Check Tribbie HP trace
+                                if has_tribbie:
+                                    team_members = [castorice, characters[0], characters[1]]
+                                    total_team_hp = sum([member.max_hp for member in team_members]) + healer_max_hp
+                                    characters[tribbie_index].max_hp += 0.09 * total_team_hp
+
+                                team_data = {'Castorice Eidolon': castorice.eidolon,
+                                             'Castorice LC': castorice.lightcone.name,
+                                             'Support 1': characters[0].name,
+                                             'Support 1 Eidolon': characters[0].eidolon,
+                                             'Support 1 Lightcone': characters[0].lightcone.name,
+                                             'Support 1 Superimpose': characters[0].lightcone.superimpose,
+                                             'Support 2': characters[1].name,
+                                             'Support 2 Eidolon': characters[1].eidolon,
+                                             'Support 2 Lightcone': characters[1].lightcone.name,
+                                             'Support 2 Superimpose': characters[1].lightcone.superimpose}
+                                
+                                all_possible_teams.append(team_data)
                                 
                                 pbar.update(1)
 # Print out the total number of combinations
 print(f"Total simulation compositions: {len(all_possible_teams)}")
+print(f"first 10 teams: {all_possible_teams[:10]}")
