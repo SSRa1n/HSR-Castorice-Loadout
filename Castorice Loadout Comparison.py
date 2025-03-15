@@ -1,5 +1,6 @@
 import itertools
 from tqdm import tqdm
+import random
 
 # 3.2v3
 
@@ -164,6 +165,10 @@ def get_character(name:str, eidolon:int, lightcone:Lightcone):
         character.lightcone = lightcone
     return character
 
+# Creat Healer instance
+healer = Character('Name',0,0,0,0,0,0,0,0,0,0)
+healer.max_hp = healer_max_hp
+
 # enemy_def_multiply = (character_level + 20) / (((enemy_level + 20) * (1 - total_def_reduction - total_def_ignore)) + character_level + 20)
 
 available_char = ['Ruan Mei', 'Sparkle', 'Robin', 'Sunday', 'Tribbie', 'RMC', 'Pela']
@@ -172,9 +177,6 @@ available_lc = ['Dance Dance Dance', 'Planetary Rendezvous', 'Past Self in Mirro
 
 available_castorice_lc = ['Make Farewells More Beautiful', 'Sweat Now, Cry Less'] 
 # Change 'Sweat Now, Cry Less' to 'Reminiscence' for F2P option #
-
-# team = []
-# newbud_regen = sum(castorice.skill_hp_consume * member.max_hp for member in team) 
 
 team_combinations = list(itertools.combinations(available_char, 2))
 
@@ -212,6 +214,9 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                         lightcone = get_lightcone("Memories of the past", 5, 0)
                                     else:
                                         lightcone = get_lightcone(lc_name, superimpose, stack=3)
+                                    
+                                    if lightcone.name == 'Planetary Rendezvous' and team[i] != 'Tribbie':
+                                        lightcone.tdmg = 0
 
                                     character = get_character(team[i], eidolons[i], lightcone)
                                     characters.append(character)
@@ -222,16 +227,19 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                         has_tribbie = True
                                         tribbie_index = i
 
+                                team_members = [castorice, characters[0], characters[1], healer]
+
                                 # Sunday E6 excess CR buff
                                 if has_sunday:
                                     if castorice.crit_rate > 1:
                                         castorice.crit_dmg += castorice.crit_rate - 1
-                                        
+                                
                                 # Check Tribbie HP trace
                                 if has_tribbie:
-                                    team_members = [castorice, characters[0], characters[1]]
-                                    total_team_hp = sum([member.max_hp for member in team_members]) + healer_max_hp
+                                    total_team_hp = sum(member.max_hp for member in team_members)
                                     characters[tribbie_index].max_hp += 0.09 * total_team_hp
+
+                                newbud_regen = sum(castorice.skill_hp_consume * member.max_hp for member in team_members)
 
                                 team_data = {'Castorice Eidolon': castorice.eidolon,
                                              'Castorice LC': castorice.lightcone.name,
@@ -242,11 +250,13 @@ with tqdm(total_combinations, desc="Processing", total=total_combinations, unit=
                                              'Support 2': characters[1].name,
                                              'Support 2 Eidolon': characters[1].eidolon,
                                              'Support 2 Lightcone': characters[1].lightcone.name,
-                                             'Support 2 Superimpose': characters[1].lightcone.superimpose}
+                                             'Support 2 Superimpose': characters[1].lightcone.superimpose,
+                                             'Newbud Regen': newbud_regen}
                                 
                                 all_possible_teams.append(team_data)
                                 
                                 pbar.update(1)
 # Print out the total number of combinations
 print(f"Total simulation compositions: {len(all_possible_teams)}")
-print(f"first 10 teams: {all_possible_teams[:10]}")
+all_possible_teams.sort(key=lambda team: team['Newbud Regen'])
+print(f"random 10 teams: {random.choices(all_possible_teams, k=10)}")
